@@ -2,7 +2,7 @@ import pygame
 from random import randrange
 from math import sqrt
 
-v = 500
+
 class virus():
     def __init__(self, name, mortality, contagious, term, zona):
         self.name = name  # название вируса
@@ -52,10 +52,11 @@ class person():
 
 
 if __name__ == '__main__':
-    virus = virus("простой вирус", 1, 1, 10, 0)
+    virus = virus("простой вирус", 1, 1, 10, 5)
     pygame.init()
     slpress = False
     radius = 3
+    v = 200
     x = 1250
     y = 500
     xcd = 0
@@ -70,7 +71,6 @@ if __name__ == '__main__':
     pygame.display.flip()
     clock = pygame.time.Clock()
     people = [person(f"человек_{i}") for i in range(200)]
-    pygame.draw.rect(screen, 'RED', (x, y, 25, 25))
     pygame.display.update()
     while running:
         for event in pygame.event.get():
@@ -81,6 +81,7 @@ if __name__ == '__main__':
                 if x < h[0] < x + 25 and y < h[1] < y + 25:
                     ycd = h[1] - y
                     slpress = True
+                    pygame.draw.rect(screen, 'GREEN', (x, y, 25, 25))
             if event.type == pygame.MOUSEMOTION and slpress:
                 screen.fill((0, 0, 0))
                 drawing = True
@@ -88,18 +89,16 @@ if __name__ == '__main__':
                 y = h[1] - ycd
                 if y > 600:
                     y = 600
-                    slpress = False
                 elif y < 200:
                     y = 200
-                    slpress = False
-
-                print(1000 - y)
-                v = 1000 - y
+                v = (600 - y) * 2
                 pygame.draw.rect(screen, 'GREEN', (x, y, 25, 25))
+                pygame.draw.rect(screen, 'RED', (1242, 195, 40, 437))
                 pygame.display.flip()
             if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                 slpress = False
         screen.fill((0, 0, 0))
+        pygame.draw.rect(screen, 'RED', (1242, 195, 40, 437))
         pygame.draw.rect(screen, 'GREEN', (x, y, 25, 25))
         for man in people:
             man.change_coords()
@@ -118,7 +117,8 @@ if __name__ == '__main__':
                         dl = sqrt((man.coord[0] - elem.coord[0]) ** 2 + (man.coord[1] - elem.coord[1]) ** 2)
                         if radius * 2 >= dl:
                             elem.color = "GREEN"
-
+        pygame.draw.rect(screen, 'RED', (1242, 195, 40, 437))
+        pygame.draw.rect(screen, 'GREEN', (x, y, 25, 25))
         pygame.display.flip()
         pygame.display.update()
         clock.tick(fps)

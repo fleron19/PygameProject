@@ -2,6 +2,8 @@ import pygame
 from random import randrange
 from math import sqrt
 
+font_name = pygame.font.match_font('arial')
+
 
 class virus():
     def __init__(self, name, mortality, contagious, term, zona):
@@ -10,6 +12,14 @@ class virus():
         self.contagious = contagious  # заразность, шанс заражения
         self.term = term  # срок, после которого человек сам выздоравливает
         self.zona = zona  # зона вокруг заболевшего, в которой заражаются люди
+
+
+def draw_text(surf, text, size, x, y):
+    font = pygame.font.Font(font_name, size)
+    text_surface = font.render(text, True, 'WHITE')
+    text_rect = text_surface.get_rect()
+    text_rect.midtop = (x, y)
+    surf.blit(text_surface, text_rect)
 
 
 class person():
@@ -52,16 +62,18 @@ class person():
 
 
 if __name__ == '__main__':
-    virus = virus("простой вирус", 1, 1, 10, 5)
+    virus = virus("простой вирус", 50, 75, 15, 0)
     pygame.init()
     slpress = False
     radius = 3
     v = 200
-    x = 1250
+    x = 1870
+    fl = 0
+    died = 0
     y = 500
     xcd = 0
     ycd = 0
-    size = width, height = 1300, 700
+    size = width, height = 1920, 1080
     screen = pygame.display.set_mode(size)
     pygame.display.set_caption("игла вилус")
     running = True
@@ -81,6 +93,7 @@ if __name__ == '__main__':
                 if x < h[0] < x + 25 and y < h[1] < y + 25:
                     ycd = h[1] - y
                     slpress = True
+                    pygame.draw.rect(screen, 'RED', (1863, 195, 40, 437))
                     pygame.draw.rect(screen, 'GREEN', (x, y, 25, 25))
             if event.type == pygame.MOUSEMOTION and slpress:
                 screen.fill((0, 0, 0))
@@ -93,31 +106,39 @@ if __name__ == '__main__':
                     y = 200
                 v = (600 - y) * 2
                 pygame.draw.rect(screen, 'GREEN', (x, y, 25, 25))
-                pygame.draw.rect(screen, 'RED', (1242, 195, 40, 437))
+                pygame.draw.rect(screen, 'RED', (1863, 195, 40, 437))
                 pygame.display.flip()
             if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                 slpress = False
         screen.fill((0, 0, 0))
-        pygame.draw.rect(screen, 'RED', (1242, 195, 40, 437))
+        pygame.draw.rect(screen, 'RED', (1863, 195, 40, 437))
         pygame.draw.rect(screen, 'GREEN', (x, y, 25, 25))
         for man in people:
             man.change_coords()
             if man.color == "RED":
                 man.count += 1
-                if man.count == fps * 10:
+                if randrange(fps * virus.term * 0.2) / virus.mortality >= fps * virus.term - man.count * 0.5:
                     people.remove(man)
+                    died += 1
+                if man.count == fps * virus.term:
+                    man.color = "GREEN"
+                    fl += 1
                 for elem in people:
                     if elem.color == "GREEN":
                         dl = sqrt((man.coord[0] - elem.coord[0]) ** 2 + (man.coord[1] - elem.coord[1]) ** 2)
                         if radius * 2 + virus.zona >= dl:
-                            elem.color = "RED"
+                            a = randrange(100)
+                            print(round(a % virus.contagious) != 0, a, virus.contagious, a % virus.contagious)
+                            if round(a % virus.contagious) != 0:
+                                elem.color = "RED"
             if man.color == "BLUE":
                 for elem in people:
                     if elem.color == "RED":
                         dl = sqrt((man.coord[0] - elem.coord[0]) ** 2 + (man.coord[1] - elem.coord[1]) ** 2)
                         if radius * 2 >= dl:
                             elem.color = "GREEN"
-        pygame.draw.rect(screen, 'RED', (1242, 195, 40, 437))
+        draw_text(screen, 'died:' + str(died) + ' : ' + str(fl), 18, round(width / 1.5), 10)
+        pygame.draw.rect(screen, 'RED', (1863, 195, 40, 437))
         pygame.draw.rect(screen, 'GREEN', (x, y, 25, 25))
         pygame.display.flip()
         pygame.display.update()

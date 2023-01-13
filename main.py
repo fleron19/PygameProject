@@ -35,23 +35,39 @@ class person():
             self.color = "BLUE"
         self.name = name
         self.count = 0
+        self.passenger = 0
 
     def change_coords(self):  # функция, просчитывающая движение и изменяющая направление
         global v
-        r, r1 = randrange(0, 101), randrange(0, 101)
-        if r % 33 == 0 and r1 % 15 == 0 or (self.direction[0] == 0 and self.direction[1] == 0 and r % 50 == 0):
-            self.direction = self.rand_dir()
-        if self.coord[0] + self.direction[0] * v / 1000 < radius:
-            self.direction[0] = 1
-        elif self.coord[0] + self.direction[0] * v / 1000 > width - radius:
-            self.direction[0] = -1
-        self.coord[0] = self.coord[0] + self.direction[0] * v / 1000
-        if self.coord[1] + self.direction[1] * v / 1000 < radius:
-            self.direction[1] = 1
-        elif self.coord[1] + self.direction[1] * v / 1000 > height - radius:
-            self.direction[1] = -1
+        self.cheak_airport()
+        if self.passenger == 1:
+            self.direction = [((0 + 40) // 2 - self.coord[0]) // abs((0 + 40) // 2 - self.coord[0]),
+                              ((0 + 40) // 2 - self.coord[1]) // abs((0 + 40) // 2 - self.coord[1])]
+        if self.passenger == 2:
+            self.direction = [5, 0]
+        else:
+            r, r1 = randrange(0, 101), randrange(0, 101)
+            if r % 33 == 0 and r1 % 15 == 0 or (self.direction[0] == 0 and self.direction[1] == 0 and r % 50 == 0):
+                self.direction = self.rand_dir()
+            if self.coord[0] + self.direction[0] * v / 1000 < radius:
+                self.direction[0] = 1
+            elif self.coord[0] + self.direction[0] * v / 1000 > width - radius:
+                self.direction[0] = -1
+            if self.coord[1] + self.direction[1] * v / 1000 < radius + 15:
+                self.direction[1] = 1
+            elif self.coord[1] + self.direction[1] * v / 1000 > height - radius:
+                self.direction[1] = -1
         self.coord[1] = self.coord[1] + self.direction[1] * v / 1000
+        self.coord[0] = self.coord[0] + self.direction[0] * v / 1000
         self.renderman()
+
+    def cheak_airport(self):
+        if self.coord[0] > 0 and self.coord[0] < 40 and self.coord[1] > 0 and self.coord[
+            1] < 40 and self.passenger == 0:
+            self.passenger = 1
+        if self.coord[0] > (0 + 40) // 2 - 2 and self.coord[0] < (0 + 40) // 2 + 2 and self.coord[1] > (
+                0 + 40) // 2 - 2 and self.coord[1] < (0 + 40) // 2 + 2:
+            self.passenger = 2
 
     def rand_dir(self):  # функция, которая задаёт случайное направление
         self.xd, self.yd = randrange(-1, 2), randrange(-1, 2)
@@ -62,7 +78,7 @@ class person():
 
 
 if __name__ == '__main__':
-    virus = virus("простой вирус", 50, 75, 15, 0)
+    virus = virus("простой вирус", 50, 50, 15, 0)
     pygame.init()
     slpress = False
     radius = 3
@@ -73,9 +89,9 @@ if __name__ == '__main__':
     y = 500
     xcd = 0
     ycd = 0
-    size = width, height = 1920, 1080
+    size = width, height = 1920, 1050
     screen = pygame.display.set_mode(size)
-    pygame.display.set_caption("игла вилус")
+    pygame.display.set_caption("игра вирус")
     running = True
     h = [0, 0]
     fps = 100
@@ -113,6 +129,7 @@ if __name__ == '__main__':
         screen.fill((0, 0, 0))
         pygame.draw.rect(screen, 'RED', (1863, 195, 40, 437))
         pygame.draw.rect(screen, 'GREEN', (x, y, 25, 25))
+        pygame.draw.rect(screen, 'GRAY', (0, 0, 40, 40))
         for man in people:
             man.change_coords()
             if man.color == "RED":

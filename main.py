@@ -28,17 +28,28 @@ def draw_text(surf, text, size, x, y):
     surf.blit(text_surface, text_rect)
 
 
+class hospital():
+    def __init__(self, x, y, height, width):
+        self.x = x
+        self.y = y
+        self.height = height
+        self.width = width
+
+
 class person():
-    def __init__(self, name, color=False, vel=False):
+    def __init__(self, name, color=False, vel=False, pas=0):
         global v
         self.coord = [randrange(radius + 50, width - radius),
                       randrange(radius + 50, height - radius)]  # задаём случайные начальные координаты
         self.direction = 0
         self.rand_dir()  # задаём направление
         self.velocity = 0
+        self.pas = pas
+        if pas == 3:
+            self.coord[0] = 2300
+            self.coord[1] = 50
         if not vel:
             self.velocity = v
-
         else:
             self.velocity = vel
         if not color:
@@ -66,12 +77,13 @@ class person():
 
         if self.coord[0] >= 2300:
             self.coord[1] -= 10
-            a = randrange(20)
-            self.color = "GREEN"
-            if a == 1 or a == 3:
-                self.color = "RED"
-            if a == 2:
-                self.color = "BLUE"
+            if not self.pas == 3:
+                a = randrange(20)
+                self.color = "GREEN"
+                if a == 1 or a == 3:
+                    self.color = "RED"
+                if a == 2:
+                    self.color = "BLUE"
             self.passenger = 3
 
         if self.passenger == 1:
@@ -101,7 +113,8 @@ class person():
         self.renderman()
 
     def check_airport(self):
-        if airport[0] < self.coord[0] < airport[2] and airport[1] < self.coord[1] < airport[3] and self.passenger == 0 and border == 0:
+        if airport[0] < self.coord[0] < airport[2] and airport[1] < self.coord[1] < airport[
+            3] and self.passenger == 0 and border == 0:
             self.passenger = 1
         if (airport[0] + airport[2]) // 2 - 2 < self.coord[0] < (airport[0] + airport[2]) // 2 + 2 and \
                 (airport[1] + airport[3]) // 2 - 2 < self.coord[1] < (
@@ -122,7 +135,8 @@ if __name__ == '__main__':
     slpress = False
     radius = 3
     buttons = [[5, 130, 45, 170, (0, 0, 100)], [5, 190, 45, 230, (100, 0, 0)],
-               [5, 250, 45, 290, (0, 100, 0)], [5, 310, 45, 350, (0, 100, 100)]]  # левый верхний угол, правый нижний
+               [5, 250, 45, 290, (0, 100, 0)], [5, 310, 45, 350, (0, 100, 100)],
+               [5, 430, 45, 470, (0, 200, 50)]]  # левый верхний угол, правый нижний
     airport = [10, 0, 90, 90]  # левый верхний угол, правый нижний
     v = 200
     doctor_vel = 0
@@ -130,15 +144,20 @@ if __name__ == '__main__':
     fl = 0
     border = 0
     died = 0
+    hosp_set = False
     doctor = 0
     doctor_vel_price = 10
     doctor_price = 10
+    hospital_price = 100
+    hospitals = []
     sick = 0
+    hx = 0
+    hy = 0
     money_change = 0
     y = 500
     xcd = 0
     ycd = 0
-    money = 1
+    money = 100
     size = width, height = 1920, 1050
     screen = pygame.display.set_mode(size)
     pygame.display.set_caption("игра вирус")
@@ -152,13 +171,23 @@ if __name__ == '__main__':
     people = [person(f"человек_{i}") for i in range(200)]
     pygame.display.update()
     while running:
+        screen.fill((0, 0, 0))
         doctor = 0
         sick = 0
+        if hosp_set:
+            pygame.draw.rect(screen, (0, 50, 100), (hx - 25, hy - 25, 50, 50))
         for event in pygame.event.get():
+            if hosp_set:
+                hx, hy = pygame.mouse.get_pos()
+                pygame.draw.rect(screen, (0, 50, 100), (hx - 25, hy - 25, 50, 50))
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 h = event.pos
+                if hosp_set:
+                    slpress = False
+                    hospitals.append(hospital(h[0] - 25, h[1] - 25, 50, 50))
+                    hosp_set = False
                 if x < h[0] < x + 25 and y < h[1] < y + 25:
                     ycd = h[1] - y
                     slpress = True
@@ -171,12 +200,20 @@ if __name__ == '__main__':
                 elif press == 2:
                     if money >= doctor_price:
                         money -= doctor_price
-                        people.append(person(f"человек_{len(people) + 1}", 'BLUE'))
+                        people.append(person(f"человек_{len(people) + 1}", vel=v + doctor_vel, color="BLUE", pas=3))
+                        doctor_price += 1
                 elif press == 3:
                     if money >= doctor_price:
                         doctor_vel_price += 1
                         money -= doctor_vel_price
                         doctor_vel += 10
+
+                elif press == 4:
+                    if money >= hospital_price:
+                        money -= hospital_price
+                        hospital_price += 25
+                        hosp_set = True
+
             if event.type == pygame.MOUSEMOTION and slpress:
                 screen.fill((0, 0, 0))
                 drawing = True
@@ -197,9 +234,10 @@ if __name__ == '__main__':
             money = 0
             y = 200
             v = (600 - y) * 2
-        screen.fill((0, 0, 0))
         pygame.draw.rect(screen, 'RED', (1863, 195, 40, 437))
         pygame.draw.rect(screen, 'GREEN', (x, y, 25, 25))
+        for q in hospitals:
+            pygame.draw.rect(screen, (0, 50, 100), (q.x, q.y, q.width, q.height))
         pygame.draw.rect(screen, 'GRAY', (airport[0], airport[1], airport[2] - airport[0], airport[3] - airport[1]))
         pygame.draw.rect(screen, (0, 0, 189), (0, 0, 50, 1050))
         # screen.blit(img,(0,0))
@@ -209,6 +247,9 @@ if __name__ == '__main__':
             man.change_coords()
             man.velocity = v
             if man.color == "RED":
+                for hosp in hospitals:
+                    if hosp.x < man.coord[0] < hosp.x + hosp.width and hosp.y < man.coord[1] < hosp.y + hosp.height:
+                        man.color = 'GREEN'
                 sick += 1
                 man.count += 1
                 if randrange(fps * virus.term * 0.2) / virus.mortality >= fps * virus.term - man.count * 0.5:
@@ -243,6 +284,7 @@ if __name__ == '__main__':
         draw_text(screen, 'doctor: ' + str(round(doctor)), 18, round(width / 1.75), 10)
         draw_text(screen, str(doctor_price), 18, 20, 290)
         draw_text(screen, str(doctor_vel_price), 18, 20, 350)
+        draw_text(screen, str(hospital_price), 18, 20, 470)
         pygame.draw.rect(screen, 'RED', (1863, 195, 40, 437))
         pygame.draw.rect(screen, 'GREEN', (x, y, 25, 25))
         pygame.display.flip()

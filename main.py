@@ -35,6 +35,7 @@ class hospital():
         self.y = y
         self.height = height
         self.width = width
+        self.isOn = True
 
 
 class person():
@@ -189,6 +190,11 @@ if __name__ == '__main__':
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 h = event.pos
+                for q in hospitals:
+                    print(str(q.x) + ' ' + str(h[0]))
+                    if q.x < h[0] < q.x + q.width and q.y < h[1] < q.y + q.height:
+                        q.isOn = not q.isOn
+                        print(q.isOn)
                 if hosp_set:
                     slpress = False
                     hospitals.append(hospital(h[0] - 25, h[1] - 25, 50, 50))
@@ -200,7 +206,7 @@ if __name__ == '__main__':
                     pygame.draw.rect(screen, 'GREEN', (x, y, 25, 25))
                 press = check_click(h, buttons)
                 if press == 0:
-                    border = (border + 1) % 2
+                    border = not border
                     buttons[0][4] = (0, 0, 100 - 50 * border)
                 elif press == 2:
                     if money >= doctor_price:
@@ -250,7 +256,10 @@ if __name__ == '__main__':
         pygame.draw.rect(screen, 'RED', (1863, 195, 40, 437))
         pygame.draw.rect(screen, 'GREEN', (x, y, 25, 25))
         for q in hospitals:
-            pygame.draw.rect(screen, (0, 50, 100), (q.x, q.y, q.width, q.height))
+            if q.isOn:
+                pygame.draw.rect(screen, (0, 50, 100), (q.x, q.y, q.width, q.height))
+            else:
+                pygame.draw.rect(screen, (0, 10, 20), (q.x, q.y, q.width, q.height))
         pygame.draw.rect(screen, 'GRAY', (airport[0], airport[1], airport[2] - airport[0], airport[3] - airport[1]))
         pygame.draw.rect(screen, (0, 0, 189), (0, 0, 50, 1050))
         # screen.blit(img,(0,0))
@@ -261,7 +270,7 @@ if __name__ == '__main__':
             man.velocity = v
             if man.color == "RED":
                 for hosp in hospitals:
-                    if hosp.x < man.coord[0] < hosp.x + hosp.width and hosp.y < man.coord[1] < hosp.y + hosp.height:
+                    if hosp.x < man.coord[0] < hosp.x + hosp.width and hosp.y < man.coord[1] < hosp.y + hosp.height and hosp.isOn:
                         man.color = 'GREEN'
                 sick += 1
                 man.count += 1
@@ -290,6 +299,10 @@ if __name__ == '__main__':
                             elem.color = "GREEN"
         money_change = (len(people) - doctor - sick) / fps * v / 10000
         money_change -= ((len(people)) / fps / 50)
+        money_change -= border * 0.01
+        for h in hospitals:
+            if h.isOn:
+                money_change -= 0.01
         money += money_change
         if open1 == 1:
             pygame.draw.rect(screen, (0, 0, 139), (50, 360, 250, 320))

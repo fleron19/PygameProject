@@ -1,14 +1,15 @@
-import pygame
-from random import randrange
 from math import sqrt
+from random import randrange
+
+import pygame
 
 font_name = pygame.font.match_font('arial')
 
 
-def check_click(pos):
-    for btn in buttons:
+def check_click(pos, lis):
+    for btn in lis:
         if btn[0] < pos[0] < btn[2] and btn[1] < pos[1] < btn[3]:
-            return buttons.index(btn)
+            return lis.index(btn)
 
 
 class virus():
@@ -136,7 +137,9 @@ if __name__ == '__main__':
     radius = 3
     buttons = [[5, 130, 45, 170, (0, 0, 100)], [5, 190, 45, 230, (100, 0, 0)],
                [5, 250, 45, 290, (0, 100, 0)], [5, 310, 45, 350, (0, 100, 100)],
-               [5, 430, 45, 470, (0, 200, 50)]]  # левый верхний угол, правый нижний
+               [5, 370, 45, 410, (100, 100, 0)], [5, 430, 45, 470, (0, 200, 50)]]  # левый верхний угол, правый нижний
+    more_buttons = [[55, 370, 95, 410, (100, 100, 0)], [55, 430, 95, 470, (100, 100, 0)],
+                    [55, 500, 95, 540, (100, 100, 0)], [55, 560, 95, 600, (100, 100, 0)]]
     airport = [10, 0, 90, 90]  # левый верхний угол, правый нижний
     v = 200
     doctor_vel = 0
@@ -145,6 +148,8 @@ if __name__ == '__main__':
     border = 0
     died = 0
     hosp_set = False
+    open1 = 0
+    mask = 0
     doctor = 0
     doctor_vel_price = 10
     doctor_price = 10
@@ -193,7 +198,7 @@ if __name__ == '__main__':
                     slpress = True
                     pygame.draw.rect(screen, 'RED', (1863, 195, 40, 437))
                     pygame.draw.rect(screen, 'GREEN', (x, y, 25, 25))
-                press = check_click(h)
+                press = check_click(h, buttons)
                 if press == 0:
                     border = (border + 1) % 2
                     buttons[0][4] = (0, 0, 100 - 50 * border)
@@ -208,11 +213,19 @@ if __name__ == '__main__':
                         money -= doctor_vel_price
                         doctor_vel += 10
 
-                elif press == 4:
+                elif press == 5:
                     if money >= hospital_price:
                         money -= hospital_price
                         hospital_price += 25
                         hosp_set = True
+                elif press == 4:
+                    open1 = (open1 + 1) % 2
+                    buttons[4][4] = (100, 100 - 50 * open1, 0)
+                if open1 == 1:
+                    more_press = check_click(h, more_buttons)
+                    if more_press == 0:
+                        mask = (mask + 1) % 2
+                        more_buttons[0][4] = (100, 100 - 50 * mask, 0)
 
             if event.type == pygame.MOUSEMOTION and slpress:
                 screen.fill((0, 0, 0))
@@ -278,6 +291,12 @@ if __name__ == '__main__':
         money_change = (len(people) - doctor - sick) / fps * v / 10000
         money_change -= ((len(people)) / fps / 50)
         money += money_change
+        if open1 == 1:
+            pygame.draw.rect(screen, (0, 0, 139), (50, 360, 250, 320))
+            draw_text(screen, 'маски', 20, 130, 370)
+            draw_text(screen, 'шанс заражения -25%', 15, 160, 390)
+            for btn in more_buttons:
+                pygame.draw.rect(screen, btn[4], (btn[0], btn[1], btn[2] - btn[0], btn[3] - btn[1]))
         draw_text(screen, 'sick: ' + str(sick), 18, round(width / 1.3), 10)
         draw_text(screen, 'died: ' + str(died) + ' : ' + str(fl), 18, round(width / 1.6), 10)
         draw_text(screen, 'money: ' + str(round(money)) + ' ' + str(money_change)[:4], 18, round(width / 1.45), 10)

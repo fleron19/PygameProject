@@ -3,7 +3,12 @@ from random import randrange
 
 import pygame
 
+pygame.init()
+
 font_name = pygame.font.match_font('arial')
+
+button_sound = pygame.mixer.Sound('button_sound.mp3')
+error = pygame.mixer.Sound('error.mp3')
 
 
 def check_click(pos, lis):
@@ -13,12 +18,14 @@ def check_click(pos, lis):
 
 
 class virus():
-    def __init__(self, name, mortality, contagious, term, zona):
+    def __init__(self, name, mortality, contagious, term, zona, period, time_vac):
         self.name = name  # название вируса
         self.mortality = mortality  # летальность
         self.contagious = 100 / contagious  # заразность, шанс заражения
         self.term = term  # срок, после которого человек сам выздоравливает
         self.zona = zona  # зона вокруг заболевшего, в которой заражаются люди
+        self.period = period
+        self.time_vac = time_vac
 
 
 def draw_text(surf, text, size, x, y):
@@ -42,11 +49,14 @@ class person():
     def __init__(self, name, color=False, vel=False, pas=0):
         global v
         self.coord = [randrange(radius + 50, width - radius),
-                      randrange(radius + 50, height - radius)]  # задаём случайные начальные координаты
+                      randrange(radius + 50, height - radius - 60)]  # задаём случайные начальные координаты
         self.direction = 0
         self.rand_dir()  # задаём направление
         self.velocity = 0
         self.pas = pas
+        self.per = 0
+        self.vaccine = 0
+        self.time_vaccine = virus.time_vac + 1
         if pas == 3:
             self.coord[0] = 2300
             self.coord[1] = 50
@@ -55,11 +65,11 @@ class person():
         else:
             self.velocity = vel
         if not color:
-            a = randrange(20)
+            a = randrange(100)
             self.color = "GREEN"
-            if a == 1:
+            if 0 <= a <= 9:
                 self.color = "RED"
-            if a == 2:
+            if 11 <= a <= 13:
                 self.color = "BLUE"
         else:
             self.color = color
@@ -86,6 +96,10 @@ class person():
                     self.color = "RED"
                 if a == 2:
                     self.color = "BLUE"
+            self.per = 0
+            self.vaccine = 0
+            self.time_vaccine = virus.time_vac + 1
+            self.count = 0
             self.passenger = 3
 
         if self.passenger == 1:
@@ -108,13 +122,14 @@ class person():
                 self.direction[0] = -1
             if self.coord[1] + self.direction[1] * self.velocity / 1000 < radius + 50:
                 self.direction[1] = 1
-            elif self.coord[1] + self.direction[1] * self.velocity / 1000 > height - radius - 50:
+            elif self.coord[1] + self.direction[1] * self.velocity / 1000 > height - radius - 100:
                 self.direction[1] = -1
         self.coord[1] = self.coord[1] + self.direction[1] * self.velocity / 1000
         self.coord[0] = self.coord[0] + self.direction[0] * self.velocity / 1000
         self.renderman()
 
     def check_airport(self):
+        global money
         if airport[0] < self.coord[0] < airport[2] and airport[1] < self.coord[1] < airport[
             3] and self.passenger == 0 and border == 0:
             self.passenger = 1
@@ -122,27 +137,31 @@ class person():
                 (airport[1] + airport[3]) // 2 - 2 < self.coord[1] < (
                 airport[1] + airport[3]) // 2 + 2 and border == 0 and self.passenger == 1:
             self.passenger = 2
+            money += 5
 
     def rand_dir(self):  # функция, которая задаёт случайное направление
         self.xd, self.yd = randrange(-1, 2), randrange(-1, 2)
         self.direction = [self.xd, self.yd]
 
     def renderman(self):  # функция отрисовки
+        if self.vaccine == 1:
+            pygame.draw.circle(screen, "YELLOW", (self.coord[0], self.coord[1]), radius + 5, 2)
         pygame.draw.circle(screen, self.color, (self.coord[0], self.coord[1]), radius)
 
 
 if __name__ == '__main__':
-    virus = virus("простой вирус", 0.5, 50, 15, 1)
-    pygame.init()
+    virus = virus("простой вирус", 0.5, 50, 15, 1, 7, 5)
     slpress = False
     radius = 3
     buttons = [[5, 130, 45, 170, (0, 0, 100)], [5, 190, 45, 230, (100, 0, 0)],
                [5, 250, 45, 290, (0, 100, 0)], [5, 310, 45, 350, (0, 100, 100)],
-               [5, 370, 45, 410, (100, 100, 0)], [5, 430, 45, 470, (0, 200, 50)]]  # левый верхний угол, правый нижний
+               [5, 370, 45, 410, (100, 100, 0)], [5, 430, 45, 470, (0, 200, 50)],
+               [5, 490, 45, 530, (0, 200, 200)]]  # левый верхний угол, правый нижний
     more_buttons = [[55, 370, 95, 410, (100, 100, 0)], [55, 430, 95, 470, (100, 100, 0)],
                     [55, 500, 95, 540, (100, 100, 0)], [55, 560, 95, 600, (100, 100, 0)]]
     airport = [10, 0, 90, 90]  # левый верхний угол, правый нижний
     v = 200
+    vaccine_pr = 0
     doctor_vel = 0
     x = 1870
     fl = 0
@@ -164,22 +183,49 @@ if __name__ == '__main__':
     xcd = 0
     ycd = 0
     money = 100
+    clock = pygame.time.Clock()
     size = width, height = 1920, 1050
     screen = pygame.display.set_mode(size)
+    screen.fill((0, 0, 0))
+    pygame.display.update()
     pygame.display.set_caption("игра вирус")
     running = True
-    # img = pygame.image.load('interface.png')
+    people = [person(f"человек_{i}") for i in range(200)]
     h = [0, 0]
     fps = 100
-    screen.fill((0, 0, 0))
-    pygame.display.flip()
-    clock = pygame.time.Clock()
-    people = [person(f"человек_{i}") for i in range(200)]
-    pygame.display.update()
     while running:
+        if died >= 100:
+            v = 200
+            vaccine_pr = 0
+            doctor_vel = 0
+            x = 1870
+            fl = 0
+            border = 0
+            died = 0
+            hosp_set = False
+            open1 = 0
+            mask = 0
+            doctor = 0
+            doctor_vel_price = 10
+            doctor_price = 10
+            hospital_price = 100
+            hospitals = []
+            people = [person(f"человек_{i}") for i in range(200)]
+            sick = 0
+            hx = 0
+            hy = 0
+            money_change = 0
+            y = 500
+            xcd = 0
+            ycd = 0
+            money = 100
         screen.fill((0, 0, 0))
         doctor = 0
         sick = 0
+        if money >= 100 and vaccine_pr < 100:
+            buttons[6][4] = (0, 200, 200)
+        if vaccine_pr >= 100 or money < 100:
+            buttons[6][4] = (0, 100, 100)
         if hosp_set:
             pygame.draw.rect(screen, (0, 50, 100), (hx - 25, hy - 25, 50, 50))
         for event in pygame.event.get():
@@ -193,9 +239,11 @@ if __name__ == '__main__':
                 for q in hospitals:
                     print(str(q.x) + ' ' + str(h[0]))
                     if q.x < h[0] < q.x + q.width and q.y < h[1] < q.y + q.height:
+                        button_sound.play()
                         q.isOn = not q.isOn
                         print(q.isOn)
                 if hosp_set:
+                    button_sound.play()
                     slpress = False
                     hospitals.append(hospital(h[0] - 25, h[1] - 25, 50, 50))
                     hosp_set = False
@@ -208,29 +256,48 @@ if __name__ == '__main__':
                 if press == 0:
                     border = not border
                     buttons[0][4] = (0, 0, 100 - 50 * border)
+                    button_sound.play()
                 elif press == 2:
                     if money >= doctor_price:
+                        button_sound.play()
                         money -= doctor_price
                         people.append(person(f"человек_{len(people) + 1}", vel=v + doctor_vel, color="BLUE", pas=3))
                         doctor_price += 1
+                    else:
+                        error.play()
                 elif press == 3:
-                    if money >= doctor_price:
+                    if money >= doctor_vel_price:
+                        button_sound.play()
                         doctor_vel_price += 1
                         money -= doctor_vel_price
                         doctor_vel += 10
+                    else:
+                        error.play()
 
                 elif press == 5:
                     if money >= hospital_price:
+                        button_sound.play()
                         money -= hospital_price
                         hospital_price += 25
                         hosp_set = True
+                    else:
+                        error.play()
                 elif press == 4:
-                    open1 = (open1 + 1) % 2
+                    button_sound.play()
+                    open1 = not open1
                     buttons[4][4] = (100, 100 - 50 * open1, 0)
+                elif press == 6:
+                    if money >= 100:
+                        button_sound.play()
+                        vaccine_pr += 10
+                        money -= 100
+                    else:
+                        error.play()
                 if open1 == 1:
                     more_press = check_click(h, more_buttons)
                     if more_press == 0:
-                        mask = (mask + 1) % 2
+                        mask = not mask
+                        button_sound.play()
                         more_buttons[0][4] = (100, 100 - 50 * mask, 0)
 
             if event.type == pygame.MOUSEMOTION and slpress:
@@ -261,6 +328,7 @@ if __name__ == '__main__':
             else:
                 pygame.draw.rect(screen, (0, 10, 20), (q.x, q.y, q.width, q.height))
         pygame.draw.rect(screen, 'GRAY', (airport[0], airport[1], airport[2] - airport[0], airport[3] - airport[1]))
+        pygame.draw.rect(screen, 'GRAY', (100, 970, 400, 40))
         pygame.draw.rect(screen, (0, 0, 189), (0, 0, 50, 1050))
         # screen.blit(img,(0,0))
         for btn in buttons:
@@ -270,24 +338,51 @@ if __name__ == '__main__':
             man.velocity = v
             if man.color == "RED":
                 for hosp in hospitals:
-                    if hosp.x < man.coord[0] < hosp.x + hosp.width and hosp.y < man.coord[1] < hosp.y + hosp.height and hosp.isOn:
+                    if hosp.x < man.coord[0] < hosp.x + hosp.width and hosp.y < man.coord[
+                        1] < hosp.y + hosp.height and hosp.isOn:
+                        man.time_vaccine = 0
                         man.color = 'GREEN'
+                        if vaccine_pr == 100:
+                            man.vaccine = 1
                 sick += 1
                 man.count += 1
                 if randrange(fps * virus.term * 0.2) / virus.mortality >= fps * virus.term - man.count * 0.5:
                     people.remove(man)
                     died += 1
                 if man.count == fps * virus.term:
+                    man.time_vaccine = 0
                     man.color = "GREEN"
                     fl += 1
                 for elem in people:
-                    if elem.color == "GREEN":
+                    if elem.color == "GREEN" and elem.vaccine == 0:
                         dl = sqrt((man.coord[0] - elem.coord[0]) ** 2 + (man.coord[1] - elem.coord[1]) ** 2)
                         if radius * 2 + virus.zona >= dl:
                             a = randrange(100)
                             # print(round(a % virus.contagious) != 0, a, virus.contagious, a % virus.contagious)
                             if round(a % virus.contagious) != 0:
-                                elem.color = "RED"
+                                elem.color = "ORANGE"
+                                elem.per = 0
+                                #  elem.count = 0
+            if man.color == "ORANGE":
+                for hosp in hospitals:
+                    if hosp.x < man.coord[0] < hosp.x + hosp.width and hosp.y < man.coord[
+                        1] < hosp.y + hosp.height and hosp.isOn:
+                        man.color = 'GREEN'
+                        man.time_vaccine = 0
+                        if vaccine_pr == 100:
+                            man.vaccine = 1
+                man.per += 1 / fps
+                if man.per >= virus.period:
+                    man.color = "RED"
+                for elem in people:
+                    if elem.color == 'GREEN' and elem.vaccine == 0:
+                        dl = sqrt((man.coord[0] - elem.coord[0]) ** 2 + (man.coord[1] - elem.coord[1]) ** 2)
+                        if radius * 2 + virus.zona >= dl:
+                            a = randrange(100)
+                            # print(round(a % virus.contagious) != 0, a, virus.contagious, a % virus.contagious)
+                            if round(a % virus.contagious) != 0:
+                                elem.color = "ORANGE"
+                                elem.per = 0
                                 #  elem.count = 0
             if man.color == "BLUE":
                 doctor += 1
@@ -295,11 +390,24 @@ if __name__ == '__main__':
                 for elem in people:
                     if elem.color == "RED":
                         dl = sqrt((man.coord[0] - elem.coord[0]) ** 2 + (man.coord[1] - elem.coord[1]) ** 2)
+
                         if radius * 2 >= dl:
-                            elem.color = "GREEN"
+                            if vaccine_pr == 100:
+                                elem.vaccine = 1
+                                elem.color = "GREEN"
+                                elem.time_vaccine = 0
+                            else:
+                                vaccine_pr += 1
+                                elem.color = "GREEN"
+            else:
+                if man.time_vaccine <= virus.time_vac:
+                    man.time_vaccine += 1 / fps
+            if man.time_vaccine < virus.time_vac and man.color == 'GREEN':
+                man.vaccine = 1
+            if man.time_vaccine >= virus.time_vac and vaccine_pr < 100:
+                man.vaccine = 0
         money_change = (len(people) - doctor - sick) / fps * v / 10000
         money_change -= ((len(people)) / fps / 50)
-        money_change -= border * 0.01
         for h in hospitals:
             if h.isOn:
                 money_change -= 0.01
@@ -310,6 +418,8 @@ if __name__ == '__main__':
             draw_text(screen, 'шанс заражения -25%', 15, 160, 390)
             for btn in more_buttons:
                 pygame.draw.rect(screen, btn[4], (btn[0], btn[1], btn[2] - btn[0], btn[3] - btn[1]))
+        if vaccine_pr > 100:
+            vaccine_pr = 100
         draw_text(screen, 'sick: ' + str(sick), 18, round(width / 1.3), 10)
         draw_text(screen, 'died: ' + str(died) + ' : ' + str(fl), 18, round(width / 1.6), 10)
         draw_text(screen, 'money: ' + str(round(money)) + ' ' + str(money_change)[:4], 18, round(width / 1.45), 10)
@@ -317,9 +427,10 @@ if __name__ == '__main__':
         draw_text(screen, str(doctor_price), 18, 20, 290)
         draw_text(screen, str(doctor_vel_price), 18, 20, 350)
         draw_text(screen, str(hospital_price), 18, 20, 470)
+        pygame.draw.rect(screen, (0, 200, 200), (100, 970, vaccine_pr * 4, 40))
         pygame.draw.rect(screen, 'RED', (1863, 195, 40, 437))
         pygame.draw.rect(screen, 'GREEN', (x, y, 25, 25))
-        pygame.display.flip()
+        draw_text(screen, str(vaccine_pr) + ' / 100', 18, 300, 980)
         pygame.display.update()
         clock.tick(fps)
 pygame.quit()

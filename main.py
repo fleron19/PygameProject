@@ -229,6 +229,9 @@ if __name__ == '__main__':
         if hosp_set:
             pygame.draw.rect(screen, (0, 50, 100), (hx - 25, hy - 25, 50, 50))
         for event in pygame.event.get():
+            print(event.type)
+            if event.type == 768 and hosp_set:
+                hosp_set = False
             if hosp_set:
                 hx, hy = pygame.mouse.get_pos()
                 pygame.draw.rect(screen, (0, 50, 100), (hx - 25, hy - 25, 50, 50))
@@ -246,6 +249,8 @@ if __name__ == '__main__':
                     button_sound.play()
                     slpress = False
                     hospitals.append(hospital(h[0] - 25, h[1] - 25, 50, 50))
+                    money -= hospital_price
+                    hospital_price += 25
                     hosp_set = False
                 if x < h[0] < x + 25 and y < h[1] < y + 25:
                     ycd = h[1] - y
@@ -277,8 +282,6 @@ if __name__ == '__main__':
                 elif press == 5:
                     if money >= hospital_price:
                         button_sound.play()
-                        money -= hospital_price
-                        hospital_price += 25
                         hosp_set = True
                     else:
                         error.play()

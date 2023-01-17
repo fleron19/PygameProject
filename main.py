@@ -2,12 +2,15 @@ from math import sqrt
 from random import randrange
 
 import pygame
+import sqlite3
 
 pygame.init()
-
+CONST_DBNAME = 'virusDB.db'
 font_name = pygame.font.match_font('arial')
 
-button_sound = pygame.mixer.Sound('button_sound.mp3')
+button_sound = pygame.mixer.Sound('click.mp3')
+hosp_sound = pygame.mixer.Sound('hospital.mp3')
+vaccine_sound = pygame.mixer.Sound('vaccine.mp3')
 error = pygame.mixer.Sound('error.mp3')
 
 
@@ -21,7 +24,7 @@ class virus():
     def __init__(self, name, mortality, contagious, term, zona, period, time_vac):
         self.name = name  # название вируса
         self.mortality = mortality  # летальность
-        self.contagious = 100 / contagious  # заразность, шанс заражения
+        self.contagious = contagious  # заразность, шанс заражения
         self.term = term  # срок, после которого человек сам выздоравливает
         self.zona = zona  # зона вокруг заболевшего, в которой заражаются люди
         self.period = period
@@ -150,7 +153,11 @@ class person():
 
 
 if __name__ == '__main__':
-    virus = virus("простой вирус", 0.5, 50, 15, 1, 7, 5)
+    con = sqlite3.connect(CONST_DBNAME)
+    cur = con.cursor()
+    result = con.cursor().execute("""SELECT * FROM games where status = 'online'""").fetchone()
+    virus = virus(result[3], result[4], result[5], result[6], result[7], result[8], result[9])
+    Id = result[0]
     slpress = False
     radius = 3
     buttons = [[5, 130, 45, 170, (0, 0, 100)], [5, 190, 45, 230, (100, 0, 0)],
@@ -165,6 +172,7 @@ if __name__ == '__main__':
     doctor_vel = 0
     x = 1870
     fl = 0
+    vaccine_create = 0
     border = 0
     died = 0
     hosp_set = False
@@ -182,6 +190,9 @@ if __name__ == '__main__':
     y = 500
     xcd = 0
     ycd = 0
+    respirator = 0
+    vitamins = 0
+    medicines = 0
     money = 100
     clock = pygame.time.Clock()
     size = width, height = 1920, 1050
@@ -195,30 +206,38 @@ if __name__ == '__main__':
     fps = 100
     while running:
         if died >= 100:
-            v = 200
-            vaccine_pr = 0
-            doctor_vel = 0
-            x = 1870
-            fl = 0
-            border = 0
-            died = 0
-            hosp_set = False
-            open1 = 0
-            mask = 0
-            doctor = 0
-            doctor_vel_price = 10
-            doctor_price = 10
-            hospital_price = 100
-            hospitals = []
-            people = [person(f"человек_{i}") for i in range(200)]
-            sick = 0
-            hx = 0
-            hy = 0
-            money_change = 0
-            y = 500
-            xcd = 0
-            ycd = 0
-            money = 100
+            print(1)
+            cur = con.cursor()
+            strQuery = "update games set status = 'поражение' WHERE status = 'online'"
+            cur.execute(strQuery)    
+            con.commit()    
+            print(2)            
+            running = False 
+            print(3)
+            #v = 200
+            #vaccine_pr = 0
+            #doctor_vel = 0
+            #x = 1870
+            #fl = 0
+            #border = 0
+            #died = 0
+            #hosp_set = False
+            #open1 = 0
+            #mask = 0
+            #doctor = 0
+            #doctor_vel_price = 10
+            #doctor_price = 10
+            #hospital_price = 100
+            #hospitals = []
+            #people = [person(f"человек_{i}") for i in range(200)]
+            #sick = 0
+            #hx = 0
+            #hy = 0
+            #money_change = 0
+            #y = 500
+            #xcd = 0
+            #ycd = 0
+            #money = 100
         screen.fill((0, 0, 0))
         doctor = 0
         sick = 0
@@ -229,14 +248,18 @@ if __name__ == '__main__':
         if hosp_set:
             pygame.draw.rect(screen, (0, 50, 100), (hx - 25, hy - 25, 50, 50))
         for event in pygame.event.get():
-            print(event.type)
             if event.type == 768 and hosp_set:
                 hosp_set = False
             if hosp_set:
                 hx, hy = pygame.mouse.get_pos()
                 pygame.draw.rect(screen, (0, 50, 100), (hx - 25, hy - 25, 50, 50))
             if event.type == pygame.QUIT:
+                cur = con.cursor()
+                strQuery = "update games set status = 'прерванно' WHERE status = 'online'"
+                cur.execute(strQuery)    
+                con.commit()    
                 running = False
+                            
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 h = event.pos
                 for q in hospitals:
@@ -246,7 +269,7 @@ if __name__ == '__main__':
                         q.isOn = not q.isOn
                         print(q.isOn)
                 if hosp_set:
-                    button_sound.play()
+                    hosp_sound.play()
                     slpress = False
                     hospitals.append(hospital(h[0] - 25, h[1] - 25, 50, 50))
                     money -= hospital_price
@@ -290,10 +313,10 @@ if __name__ == '__main__':
                     open1 = not open1
                     buttons[4][4] = (100, 100 - 50 * open1, 0)
                 elif press == 6:
-                    if money >= 100:
+                    if money >= 10:
                         button_sound.play()
                         vaccine_pr += 10
-                        money -= 100
+                        money -= 10
                     else:
                         error.play()
                 if open1 == 1:
@@ -302,6 +325,18 @@ if __name__ == '__main__':
                         mask = not mask
                         button_sound.play()
                         more_buttons[0][4] = (100, 100 - 50 * mask, 0)
+                    elif more_press == 1:           
+                        vitamins = not vitamins
+                        button_sound.play()
+                        more_buttons[1][4] = (100, 100 - 50 * vitamins, 0)
+                    elif more_press == 2:
+                        respirator = not respirator
+                        button_sound.play()
+                        more_buttons[2][4] = (100, 100 - 50 * respirator, 0)
+                    elif more_press == 3:
+                        medicines = not medicines
+                        button_sound.play()
+                        more_buttons[3][4] = (100, 100 - 50 * medicines, 0)
 
             if event.type == pygame.MOUSEMOTION and slpress:
                 screen.fill((0, 0, 0))
@@ -350,8 +385,10 @@ if __name__ == '__main__':
                 sick += 1
                 man.count += 1
                 if randrange(fps * virus.term * 0.2) / virus.mortality >= fps * virus.term - man.count * 0.5:
-                    people.remove(man)
-                    died += 1
+                    if randrange(100) % 100 / 15 != 0 or vitamins == 0:
+                        if randrange(100) % 100 / 15 != 0 or medicines == 0:
+                            people.remove(man)
+                            died += 1
                 if man.count == fps * virus.term:
                     man.time_vaccine = 0
                     man.color = "GREEN"
@@ -363,8 +400,10 @@ if __name__ == '__main__':
                             a = randrange(100)
                             # print(round(a % virus.contagious) != 0, a, virus.contagious, a % virus.contagious)
                             if round(a % virus.contagious) != 0:
-                                elem.color = "ORANGE"
-                                elem.per = 0
+                                if randrange(100) % (100 / 10) != 0 or vitamins == 0:
+                                    if randrange(100) % (100 / 20) != 0 or medicines == 0:                                
+                                        elem.color = "ORANGE"
+                                        elem.per = 0                                
                                 #  elem.count = 0
             if man.color == "ORANGE":
                 for hosp in hospitals:
@@ -384,8 +423,10 @@ if __name__ == '__main__':
                             a = randrange(100)
                             # print(round(a % virus.contagious) != 0, a, virus.contagious, a % virus.contagious)
                             if round(a % virus.contagious) != 0:
-                                elem.color = "ORANGE"
-                                elem.per = 0
+                                if randrange(100) % (100 / 10) != 0 or vitamins == 0:
+                                    if randrange(100) % (100 / 20) != 0 or medicines == 0:                                
+                                        elem.color = "ORANGE"
+                                        elem.per = 0          
                                 #  elem.count = 0
             if man.color == "BLUE":
                 doctor += 1
@@ -414,15 +455,32 @@ if __name__ == '__main__':
         for h in hospitals:
             if h.isOn:
                 money_change -= 0.01
+        money_change = money_change - ((mask * 2) / fps) - ((respirator * 4) / fps)
         money += money_change
+        
         if open1 == 1:
-            pygame.draw.rect(screen, (0, 0, 139), (50, 360, 250, 320))
-            draw_text(screen, 'маски', 20, 130, 370)
-            draw_text(screen, 'шанс заражения -25%', 15, 160, 390)
+            pygame.draw.rect(screen, (0, 0, 139), (50, 360, 250, 300))
+            draw_text(screen, 'маски', 20, 135, 370)
+            draw_text(screen, 'шанс заражения -10%', 15, 165, 390)
+            draw_text(screen, 'витамины', 20, 145, 430)
+            draw_text(screen, 'шанс смертность -10%', 15, 165, 450) 
+            draw_text(screen, 'респиратор', 20, 155, 500)
+            draw_text(screen, 'шанс заражения -25%', 15, 165, 520)
+            draw_text(screen, 'лекарства', 20, 155, 560)
+            draw_text(screen, 'шанс смертность -20%', 15, 165, 580)            
             for btn in more_buttons:
                 pygame.draw.rect(screen, btn[4], (btn[0], btn[1], btn[2] - btn[0], btn[3] - btn[1]))
-        if vaccine_pr > 100:
+        if vaccine_pr >= 100:
             vaccine_pr = 100
+            if vaccine_create == 0:
+                vaccine_sound.play()
+            vaccine_create = 1
+        if sick == 0:
+            cur = con.cursor()
+            strQuery = "update games set status = 'победа' WHERE status = 'online'"
+            cur.execute(strQuery)    
+            con.commit()
+            running = False
         draw_text(screen, 'sick: ' + str(sick), 18, round(width / 1.3), 10)
         draw_text(screen, 'died: ' + str(died) + ' : ' + str(fl), 18, round(width / 1.6), 10)
         draw_text(screen, 'money: ' + str(round(money)) + ' ' + str(money_change)[:4], 18, round(width / 1.45), 10)

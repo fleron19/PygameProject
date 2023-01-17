@@ -455,7 +455,7 @@ if __name__ == '__main__':
         for h in hospitals:
             if h.isOn:
                 money_change -= 0.01
-        money_change = money_change - ((mask * 2) / fps) - ((respirator * 4) / fps)
+        money_change = money_change - ((mask * 2) / fps) - ((respirator * 4) / fps) - ((vitamins * 2) / fps) - ((medicines * 4) / fps)
         money += money_change
         
         if open1 == 1:

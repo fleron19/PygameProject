@@ -17,14 +17,14 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>Игровая география</string>
+   <string>Virus Game</string>
   </property>
   <property name="windowIcon">
    <iconset>
     <normaloff>icon.png</normaloff>icon.png</iconset>
   </property>
   <property name="statusTip">
-   <string>Всем привет от Паганеля</string>
+   <string/>
   </property>
   <property name="styleSheet">
    <string notr="true"/>

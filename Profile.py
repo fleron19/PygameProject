@@ -7,6 +7,7 @@ from PyQt5.QtGui import QPixmap
 from WinRate import WidgetRate
 from Sluz import *
 from subprocess import call
+import qdarkstyle
 
 
 
@@ -30,6 +31,7 @@ class ProfileWindow(QMainWindow):
             pixmap = QPixmap("avatars/user.png")
         self.lblImage_2.setPixmap(pixmap)
         self.lblImage_2.show()  # выводим в личный кабинет аватар пользователя
+        self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
@@ -76,6 +78,7 @@ class SettingGame(QMainWindow):
         uic.loadUi('settingGame.ui', self)
         self.back.clicked.connect(self.goback)
         self.btnPlay.clicked.connect(self.start_game)
+        self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
         
     def start_game(self):
         print(4)

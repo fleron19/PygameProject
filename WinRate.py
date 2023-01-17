@@ -7,6 +7,7 @@ from PyQt5 import uic, QtGui
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QTableWidgetItem
 from PyQt5.QtCore import Qt, QTimer
 from random import randrange
+import qdarkstyle
 
 
 class WidgetRate(QMainWindow):
@@ -36,6 +37,8 @@ class WidgetRate(QMainWindow):
         for i, elem in enumerate(res):
             for j, val in enumerate(elem):
                 self.tableWidget.setItem(i, j, QTableWidgetItem(str(val)))
+
+        self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
 
     def goback(self):
         from Profile import ProfileWindow

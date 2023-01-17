@@ -3,6 +3,7 @@ import time
 import sqlite3
 import random
 import datetime
+import qdarkstyle
 
 
 from PyQt5.QtGui import QPixmap
@@ -15,7 +16,9 @@ from Sluz import *
 from Profile import ProfileWindow
 from PyQt5.QtCore import Qt
 
+
 CONST_DBNAME = 'virusDB.db'
+
 
 class MyWidget(QMainWindow):
     def __init__(self):
@@ -23,6 +26,7 @@ class MyWidget(QMainWindow):
         # Основное окно для запуска
         uic.loadUi('helloWin.ui', self)
         self.avtor.clicked.connect(self.get)
+        self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
 
     def get(self):
         # переход к окну Авторизации
@@ -40,6 +44,7 @@ class WidgetAuth(QMainWindow):
         self.zareg.clicked.connect(self.registration)
         self.back.clicked.connect(self.goback)
         self.con = sqlite3.connect(CONST_DBNAME)
+        self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
 
     def keyPressEvent(self, event):
         # выход из окна по esc

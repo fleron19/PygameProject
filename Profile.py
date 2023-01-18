@@ -10,7 +10,6 @@ from subprocess import call
 import qdarkstyle
 
 
-
 class ProfileWindow(QMainWindow):
     def __init__(self, user, con):
         # окно личного кабинета
@@ -25,6 +24,7 @@ class ProfileWindow(QMainWindow):
         result = self.con.cursor().execute("""SELECT * FROM Games where IdUser = ? and status = 'победа'""", (self.curUser.iduser,)).fetchall()
         # выводим рейтинг в личный кабинет
         self.Bal.setText(str(len(result)))
+        self.id.setText(str(self.curUser.iduser))
         if QFile.exists("avatars/" + str(self.curUser.iduser) + ".jpg"):
             pixmap = QPixmap("avatars/" + str(self.curUser.iduser) + ".jpg")
         else:
@@ -84,14 +84,14 @@ class SettingGame(QMainWindow):
         print(4)
         cur = self.con.cursor()
         #self.curUser = user
-        dan = [self.curUser.iduser, 'online', self.lbl_name.text(), (100 - int(self.lbl_mortality.text())) / 10, int(self.lbl_contagious.text()) / 100, int(self.lbl_term.text()), int(self.lbl_zona.text()), int(self.lbl_period.text()), int(self.lbl_time_vac.text())]
+        dan = [self.curUser.iduser, 'online', self.lbl_name.text(), int(self.lbl_mortality.text()), int(self.lbl_contagious.text()), int(self.lbl_term.text()), int(self.lbl_zona.text()), int(self.lbl_period.text()), int(self.lbl_time_vac.text())]
         print(0)
         #strQuery = "Update Games set Mort = ? where IdGame = ?"  # обновляем рейтинг игрока
         #cur.execute(strQuery, (dan[1], 1))    
         strQuery = "Insert into Games (IdUser, status, virusname, mort, cont, term, zona, period, timevac) values(?, ?, ?, ?, ?, ?, ?, ?, ?)"
         print(strQuery)
         print(dan)
-        cur.execute(strQuery, (dan[0], dan[1], dan[2], dan[3], dan[4], dan[5], dan[6], dan[7],dan[8]))
+        cur.execute(strQuery, (dan[0], dan[1], dan[2], dan[3], dan[4], dan[5], dan[6], dan[7], dan[8]))
         self.con.commit()
         call(["python", "main.py"])
 

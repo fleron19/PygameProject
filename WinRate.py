@@ -4,7 +4,7 @@ import datetime
 
 
 from PyQt5 import uic, QtGui
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QTableWidgetItem
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QTableWidgetItem, QHeaderView
 from PyQt5.QtCore import Qt, QTimer
 from random import randrange
 import qdarkstyle
@@ -13,28 +13,32 @@ import qdarkstyle
 class WidgetRate(QMainWindow):
     def __init__(self, curuser, con):
         super().__init__()
-        print(1)
         uic.loadUi('rate.ui', self)
-        print(4)
         self.back.clicked.connect(self.goback)
-        print(3)
         self.curUser = curuser
         self.con = con
-        print(2)
         st = "select * from Games WHERE IdUser = " + str(self.curUser.iduser)
         res = self.con.cursor().execute(st).fetchall()
-        del res[1]
-        del res[0]
-        print(res)
+        result = []
+        for i in res:
+            tup = tuple(
+                item for item in i if item != self.curUser.iduser
+            )
+            result.append(tup)
+
         # Заполним размеры таблицы
         self.tableWidget.setRowCount(len(res))
 
-        self.tableWidget.setColumnCount(8)
-        self.tableWidget.setHorizontalHeaderLabels(["Статус", "Название", "1", "3", "4", "5", "6", "7"])
+        self.tableWidget.setColumnCount(9)
+        for i in range(10):
+            self.tableWidget.setColumnWidth(i, 150)
+        self.tableWidget.setHorizontalHeaderLabels(["ID Игры", "Результат", "Название", "Смертность", "Заразность",
+                                                    "Срок болезни", "Зона заражения", "Инкуб. Период",
+                                                    "Время иммунитета"])
 
         # Заполняем таблицу элементами
         m = -1
-        for i, elem in enumerate(res):
+        for i, elem in enumerate(reversed(result)):
             for j, val in enumerate(elem):
                 self.tableWidget.setItem(i, j, QTableWidgetItem(str(val)))
 

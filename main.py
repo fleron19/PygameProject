@@ -8,7 +8,7 @@ pygame.init()
 CONST_DBNAME = 'virusDB.db'
 font_name = pygame.font.match_font('arial')
 
-button_sound = pygame.mixer.Sound('click.mp3')
+button_sound = pygame.mixer.Sound('button_sound.mp3')
 hosp_sound = pygame.mixer.Sound('hospital.mp3')
 vaccine_sound = pygame.mixer.Sound('vaccine.mp3')
 error = pygame.mixer.Sound('error.mp3')
@@ -209,6 +209,9 @@ if __name__ == '__main__':
             print(1)
             cur = con.cursor()
             strQuery = "update games set status = 'поражение' WHERE status = 'online'"
+            draw_text(screen, 'You Win', 180, round(width / 2), 300)
+            pygame.display.update()
+            pygame.wait(2000)
             cur.execute(strQuery)    
             con.commit()    
             print(2)            
@@ -241,18 +244,18 @@ if __name__ == '__main__':
         screen.fill((0, 0, 0))
         doctor = 0
         sick = 0
-        if money >= 100 and vaccine_pr < 100:
+        if money >= 50 and vaccine_pr < 100:
             buttons[6][4] = (0, 200, 200)
-        if vaccine_pr >= 100 or money < 100:
+        if vaccine_pr >= 100 or money < 50:
             buttons[6][4] = (0, 100, 100)
         if hosp_set:
-            pygame.draw.rect(screen, (0, 50, 100), (hx - 25, hy - 25, 50, 50))
+            pygame.draw.rect(screen, (0, 50, 100), (hx - 25, hy - 25, 50, 50), 0, 5)
         for event in pygame.event.get():
             if event.type == 768 and hosp_set:
                 hosp_set = False
             if hosp_set:
                 hx, hy = pygame.mouse.get_pos()
-                pygame.draw.rect(screen, (0, 50, 100), (hx - 25, hy - 25, 50, 50))
+                pygame.draw.rect(screen, (0, 50, 100), (hx - 25, hy - 25, 50, 50), 0, 5)
             if event.type == pygame.QUIT:
                 cur = con.cursor()
                 strQuery = "update games set status = 'прерванно' WHERE status = 'online'"
@@ -278,8 +281,8 @@ if __name__ == '__main__':
                 if x < h[0] < x + 25 and y < h[1] < y + 25:
                     ycd = h[1] - y
                     slpress = True
-                    pygame.draw.rect(screen, 'RED', (1863, 195, 40, 437))
-                    pygame.draw.rect(screen, 'GREEN', (x, y, 25, 25))
+                    pygame.draw.rect(screen, 'RED', (1863, 195, 40, 437), 0, 5)
+                    pygame.draw.rect(screen, 'GREEN', (x, y, 25, 25), 0, 5)
                 press = check_click(h, buttons)
                 if press == 0:
                     border = not border
@@ -313,10 +316,10 @@ if __name__ == '__main__':
                     open1 = not open1
                     buttons[4][4] = (100, 100 - 50 * open1, 0)
                 elif press == 6:
-                    if money >= 10:
+                    if money >= 75:
                         button_sound.play()
                         vaccine_pr += 10
-                        money -= 10
+                        money -= 75
                     else:
                         error.play()
                 if open1 == 1:
@@ -348,8 +351,8 @@ if __name__ == '__main__':
                 elif y < 200:
                     y = 200
                 v = (600 - y) * 2
-                pygame.draw.rect(screen, 'GREEN', (x, y, 25, 25))
-                pygame.draw.rect(screen, 'RED', (1863, 195, 40, 437))
+                pygame.draw.rect(screen, 'GREEN', (x, y, 25, 25), 0, 5)
+                pygame.draw.rect(screen, 'BLUE', (1863, 195, 40, 437), 0, 5)
                 pygame.display.flip()
             if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                 slpress = False
@@ -358,11 +361,11 @@ if __name__ == '__main__':
             money = 0
             y = 200
             v = (600 - y) * 2
-        pygame.draw.rect(screen, 'RED', (1863, 195, 40, 437))
-        pygame.draw.rect(screen, 'GREEN', (x, y, 25, 25))
+        pygame.draw.rect(screen, 'BLUE', (1863, 195, 40, 437), 0, 5)
+        pygame.draw.rect(screen, 'GREEN', (x, y, 25, 25), 0, 5)
         for q in hospitals:
             if q.isOn:
-                pygame.draw.rect(screen, (0, 50, 100), (q.x, q.y, q.width, q.height))
+                pygame.draw.rect(screen, (0, 50, 100), (q.x, q.y, q.width, q.height), 0, 5)
             else:
                 pygame.draw.rect(screen, (0, 10, 20), (q.x, q.y, q.width, q.height))
         pygame.draw.rect(screen, 'GRAY', (airport[0], airport[1], airport[2] - airport[0], airport[3] - airport[1]))
@@ -370,7 +373,7 @@ if __name__ == '__main__':
         pygame.draw.rect(screen, (0, 0, 189), (0, 0, 50, 1050))
         # screen.blit(img,(0,0))
         for btn in buttons:
-            pygame.draw.rect(screen, btn[4], (btn[0], btn[1], btn[2] - btn[0], btn[3] - btn[1]))
+            pygame.draw.rect(screen, btn[4], (btn[0], btn[1], btn[2] - btn[0], btn[3] - btn[1]), 0, 5)
         for man in people:
             man.change_coords()
             man.velocity = v
@@ -384,7 +387,7 @@ if __name__ == '__main__':
                             man.vaccine = 1
                 sick += 1
                 man.count += 1
-                if randrange(fps * virus.term * 0.2) / virus.mortality >= fps * virus.term - man.count * 0.5:
+                if randrange(int(fps * virus.term * 0.2)) / virus.mortality >= fps * virus.term - man.count * 0.5:
                     if randrange(100) % 100 / 15 != 0 or vitamins == 0:
                         if randrange(100) % 100 / 15 != 0 or medicines == 0:
                             people.remove(man)
@@ -459,27 +462,30 @@ if __name__ == '__main__':
         money += money_change
         
         if open1 == 1:
-            pygame.draw.rect(screen, (0, 0, 139), (50, 360, 250, 300))
-            draw_text(screen, 'маски', 20, 135, 370)
-            draw_text(screen, 'шанс заражения -10%', 15, 165, 390)
-            draw_text(screen, 'витамины', 20, 145, 430)
-            draw_text(screen, 'шанс смертность -10%', 15, 165, 450) 
-            draw_text(screen, 'респиратор', 20, 155, 500)
-            draw_text(screen, 'шанс заражения -25%', 15, 165, 520)
-            draw_text(screen, 'лекарства', 20, 155, 560)
-            draw_text(screen, 'шанс смертность -20%', 15, 165, 580)            
+            pygame.draw.rect(screen, (0, 0, 139), (50, 360, 250, 300), 0, 5)
+            draw_text(screen, 'Маски', 20, 135, 370)
+            draw_text(screen, 'Шанс заражения -10%', 15, 165, 390)
+            draw_text(screen, 'Витамины', 20, 145, 430)
+            draw_text(screen, 'Смертность -10%', 15, 165, 450)
+            draw_text(screen, 'Респиратор', 20, 155, 500)
+            draw_text(screen, 'Шанс заражения -25%', 15, 165, 520)
+            draw_text(screen, 'Лекарства', 20, 155, 560)
+            draw_text(screen, 'Смертность -20%', 15, 165, 580)
             for btn in more_buttons:
-                pygame.draw.rect(screen, btn[4], (btn[0], btn[1], btn[2] - btn[0], btn[3] - btn[1]))
+                pygame.draw.rect(screen, btn[4], (btn[0], btn[1], btn[2] - btn[0], btn[3] - btn[1]), 0, 5)
         if vaccine_pr >= 100:
             vaccine_pr = 100
             if vaccine_create == 0:
                 vaccine_sound.play()
             vaccine_create = 1
         if sick == 0:
+            draw_text(screen, 'You Win', 180, round(width / 2), 300)
+            pygame.display.update()
             cur = con.cursor()
             strQuery = "update games set status = 'победа' WHERE status = 'online'"
             cur.execute(strQuery)    
             con.commit()
+            pygame.time.wait(2000)
             running = False
         draw_text(screen, 'sick: ' + str(sick), 18, round(width / 1.3), 10)
         draw_text(screen, 'died: ' + str(died) + ' : ' + str(fl), 18, round(width / 1.6), 10)
@@ -488,9 +494,10 @@ if __name__ == '__main__':
         draw_text(screen, str(doctor_price), 18, 20, 290)
         draw_text(screen, str(doctor_vel_price), 18, 20, 350)
         draw_text(screen, str(hospital_price), 18, 20, 470)
-        pygame.draw.rect(screen, (0, 200, 200), (100, 970, vaccine_pr * 4, 40))
-        pygame.draw.rect(screen, 'RED', (1863, 195, 40, 437))
-        pygame.draw.rect(screen, 'GREEN', (x, y, 25, 25))
+        draw_text(screen, str(75), 18, 20, 530)
+        pygame.draw.rect(screen, (0, 200, 200), (100, 970, vaccine_pr * 4, 40), 0, 5)
+        pygame.draw.rect(screen, 'BLUE', (1863, 195, 40, 437), 0, 5)
+        pygame.draw.rect(screen, 'GREEN', (x, y, 25, 25), 0, 5)
         draw_text(screen, str(vaccine_pr) + ' / 100', 18, 300, 980)
         pygame.display.update()
         clock.tick(fps)

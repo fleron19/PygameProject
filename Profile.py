@@ -29,6 +29,8 @@ class ProfileWindow(QMainWindow):
             pixmap = QPixmap("avatars/" + str(self.curUser.iduser) + ".jpg")
         else:
             pixmap = QPixmap("avatars/user.png")
+        pixmap = pixmap.scaledToWidth(80)
+        pixmap = pixmap.scaledToHeight(80)
         self.lblImage_2.setPixmap(pixmap)
         self.lblImage_2.show()  # выводим в личный кабинет аватар пользователя
         self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())

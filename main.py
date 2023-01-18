@@ -185,6 +185,7 @@ if __name__ == '__main__':
     hospitals = []
     sick = 0
     hx = 0
+    stat = 0
     hy = 0
     money_change = 0
     y = 500
@@ -193,7 +194,7 @@ if __name__ == '__main__':
     respirator = 0
     vitamins = 0
     medicines = 0
-    money = 100
+    money = 1000
     clock = pygame.time.Clock()
     size = width, height = 1920, 1050
     screen = pygame.display.set_mode(size)
@@ -209,7 +210,7 @@ if __name__ == '__main__':
             print(1)
             cur = con.cursor()
             strQuery = "update games set status = 'поражение' WHERE status = 'online'"
-            draw_text(screen, 'You Win', 180, round(width / 2), 300)
+            draw_text(screen, 'You Lost', 180, round(width / 2), 300)
             pygame.display.update()
             pygame.wait(2000)
             cur.execute(strQuery)    
@@ -244,9 +245,9 @@ if __name__ == '__main__':
         screen.fill((0, 0, 0))
         doctor = 0
         sick = 0
-        if money >= 50 and vaccine_pr < 100:
+        if money >= 75 and vaccine_pr < 100:
             buttons[6][4] = (0, 200, 200)
-        if vaccine_pr >= 100 or money < 50:
+        if vaccine_pr >= 100 or money < 75:
             buttons[6][4] = (0, 100, 100)
         if hosp_set:
             pygame.draw.rect(screen, (0, 50, 100), (hx - 25, hy - 25, 50, 50), 0, 5)
@@ -288,6 +289,11 @@ if __name__ == '__main__':
                     border = not border
                     buttons[0][4] = (0, 0, 100 - 50 * border)
                     button_sound.play()
+                elif press == 1:
+                    stat = not stat
+                    buttons[1][4] = (100 - 50 * stat, 0, 0)
+                    button_sound.play()
+
                 elif press == 2:
                     if money >= doctor_price:
                         button_sound.play()
@@ -487,10 +493,11 @@ if __name__ == '__main__':
             con.commit()
             pygame.time.wait(2000)
             running = False
-        draw_text(screen, 'sick: ' + str(sick), 18, round(width / 1.3), 10)
-        draw_text(screen, 'died: ' + str(died) + ' : ' + str(fl), 18, round(width / 1.6), 10)
-        draw_text(screen, 'money: ' + str(round(money)) + ' ' + str(money_change)[:4], 18, round(width / 1.45), 10)
-        draw_text(screen, 'doctor: ' + str(round(doctor)), 18, round(width / 1.75), 10)
+        if stat:
+            draw_text(screen, 'sick: ' + str(sick), 18, round(width / 1.3), 10)
+            draw_text(screen, 'died: ' + str(died) + ' : ' + str(fl), 18, round(width / 1.6), 10)
+            draw_text(screen, 'money: ' + str(round(money)) + ' ' + str(money_change)[:4], 18, round(width / 1.45), 10)
+            draw_text(screen, 'doctor: ' + str(round(doctor)), 18, round(width / 1.75), 10)
         draw_text(screen, str(doctor_price), 18, 20, 290)
         draw_text(screen, str(doctor_vel_price), 18, 20, 350)
         draw_text(screen, str(hospital_price), 18, 20, 470)

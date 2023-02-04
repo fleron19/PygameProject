@@ -1,13 +1,13 @@
-import sys
 from PyQt5 import uic
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QTableWidgetItem, QFileDialog
-from PyQt5.QtCore import Qt, QTimer, QFile
-from PyQt5.QtWidgets import QInputDialog
-from PyQt5.QtGui import QPixmap
-from WinRate import WidgetRate
-from Sluz import *
 from subprocess import call
+
 import qdarkstyle
+from PyQt5 import uic
+from PyQt5.QtCore import Qt, QFile
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QMainWindow, QFileDialog
+
+from WinRate import WidgetRate
 
 
 class ProfileWindow(QMainWindow):
@@ -21,7 +21,8 @@ class ProfileWindow(QMainWindow):
         self.curUser = user
         self.con = con
         self.lblUser.setText(self.lblUser.text() + ' ' + user.getLogin() + '!')
-        result = self.con.cursor().execute("""SELECT * FROM Games where IdUser = ? and status = 'победа'""", (self.curUser.iduser,)).fetchall()
+        result = self.con.cursor().execute("""SELECT * FROM Games where IdUser = ? and status = 'победа'""",
+                                           (self.curUser.iduser,)).fetchall()
         # выводим рейтинг в личный кабинет
         self.Bal.setText(str(len(result)))
         self.id.setText(str(self.curUser.iduser))
@@ -76,20 +77,22 @@ class SettingGame(QMainWindow):
         super().__init__()
         print(1)
         self.curUser = user
-        self.con = con        
+        self.con = con
         uic.loadUi('settingGame.ui', self)
         self.back.clicked.connect(self.goback)
         self.btnPlay.clicked.connect(self.start_game)
         self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-        
+
     def start_game(self):
         print(4)
         cur = self.con.cursor()
-        #self.curUser = user
-        dan = [self.curUser.iduser, 'online', self.lbl_name.text(), int(self.lbl_mortality.text()), int(self.lbl_contagious.text()), int(self.lbl_term.text()), int(self.lbl_zona.text()), int(self.lbl_period.text()), int(self.lbl_time_vac.text())]
+        # self.curUser = user
+        dan = [self.curUser.iduser, 'online', self.lbl_name.text(), int(self.lbl_mortality.text()),
+               int(self.lbl_contagious.text()), int(self.lbl_term.text()), int(self.lbl_zona.text()),
+               int(self.lbl_period.text()), int(self.lbl_time_vac.text())]
         print(0)
-        #strQuery = "Update Games set Mort = ? where IdGame = ?"  # обновляем рейтинг игрока
-        #cur.execute(strQuery, (dan[1], 1))    
+        # strQuery = "Update Games set Mort = ? where IdGame = ?"  # обновляем рейтинг игрока
+        # cur.execute(strQuery, (dan[1], 1))
         strQuery = "Insert into Games (IdUser, status, virusname, mort, cont, term, zona, period, timevac) values(?, ?, ?, ?, ?, ?, ?, ?, ?)"
         print(strQuery)
         print(dan)
@@ -97,8 +100,7 @@ class SettingGame(QMainWindow):
         self.con.commit()
         call(["python", "main.py"])
 
-        
     def goback(self):
         self.m = ProfileWindow(self.curUser, self.con)
         self.m.show()
-        self.close()    
+        self.close()

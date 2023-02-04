@@ -1,21 +1,13 @@
-import sys
-import time
 import sqlite3
-import random
-import datetime
+import sys
+
 import qdarkstyle
-
-
-from PyQt5.QtGui import QPixmap
 from PyQt5 import uic
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QTableWidgetItem
-from PyQt5.QtCore import Qt, QTimer, QFile
-from random import randrange
-from WinRate import WidgetRate
-from Sluz import *
-from Profile import ProfileWindow
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QMainWindow
 
+from Profile import ProfileWindow
+from Sluz import *
 
 CONST_DBNAME = 'virusDB.db'
 
@@ -58,8 +50,10 @@ class WidgetAuth(QMainWindow):
             if self.login_user.text() == "" or self.pwd_user.text() == "":
                 raise UserInvalidData()  # вызываем ошибку из-за не заполенных полей
             else:
-                result = self.con.cursor().execute("""SELECT login, IdUser, rating FROM users where login = ? and pwd = ?""", (self.login_user.text(), self.pwd_user.text())).fetchone()  # находим пользователя с задаными логином и паролем
-                if not(result is None):
+                result = self.con.cursor().execute(
+                    """SELECT login, IdUser, rating FROM users where login = ? and pwd = ?""", (self.login_user.text(),
+                                                                                                self.pwd_user.text())).fetchone()  # находим пользователя с задаными логином и паролем
+                if not (result is None):
                     self.curUser = User(self.login_user.text(), result[1], result[2])
                     self.t = ProfileWindow(self.curUser, self.con)
                     self.t.show()
@@ -104,7 +98,7 @@ class WidgetAuth(QMainWindow):
     def goback(self):
         self.m = MyWidget()
         self.m.show()
-        self.close()              
+        self.close()
 
 
 if __name__ == '__main__':

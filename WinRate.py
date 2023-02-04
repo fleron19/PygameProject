@@ -1,13 +1,6 @@
-import sys
-import time
-import datetime
-
-
-from PyQt5 import uic, QtGui
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QTableWidgetItem, QHeaderView
-from PyQt5.QtCore import Qt, QTimer
-from random import randrange
 import qdarkstyle
+from PyQt5 import uic
+from PyQt5.QtWidgets import QMainWindow, QTableWidgetItem
 
 
 class WidgetRate(QMainWindow):
